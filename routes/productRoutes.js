@@ -5,7 +5,7 @@ const router = express.Router();
 
 // [ ] 상품 등록 API
 // POST /api/products
-router.post("/", async (req, res) => {
+router.post("/products", async (req, res) => {
   try {
     const { name, description, price, tags } = req.body;
     const newProduct = new Product({ name, description, price, tags });
@@ -20,7 +20,7 @@ router.post("/", async (req, res) => {
 
 // [ ] 상품 목록 조회 API (페이지네이션, 검색, 정렬)
 //  GET /api/products
-router.get("/", async (req, res) => {
+router.get("/products", async (req, res) => {
   try {
     // 1. 주소창 주소 읽어오기 (기본값 설정)
     const offset = Number(req.query.offset) || 0;
@@ -51,7 +51,7 @@ router.get("/", async (req, res) => {
 });
 
 // [ ] 상품 상세 조회 API
-router.get("/:id", async (req, res) => {
+router.get("/products/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
@@ -66,7 +66,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // [ ] 상품 수정 API
-router.patch("/:id", async (req, res) => {
+router.patch("/products/:id", async (req, res) => {
   try {
     const updated = await Product.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -83,7 +83,7 @@ router.patch("/:id", async (req, res) => {
 });
 
 // [ ] 상품 삭제 API
-router.delete("/:id", async (req, res) => {
+router.delete("/products/:id", async (req, res) => {
   try {
     const deleted = await Product.findByIdAndDelete(req.params.id);
 

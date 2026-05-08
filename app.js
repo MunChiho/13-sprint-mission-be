@@ -18,7 +18,7 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch(err => console.log('❌ 연결 실패:', err));
 
 // 라우터 연결
-app.use('/api/products', productRoutes);
+app.use('/', productRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 서버 시작: http://localhost:${PORT}`));
