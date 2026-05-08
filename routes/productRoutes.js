@@ -23,17 +23,17 @@ router.post("/products", async (req, res) => {
 router.get("/products", async (req, res) => {
   try {
     // 1. 주소창 주소 읽어오기 (기본값 설정)
-    const offset = Number(req.query.offset) || 0;
-    const limit = Number(req.query.limit) || 10;
-    const search = req.query.search;
+    const page = Number(req.query.page) || 1;
+    const pagesize = Number(req.query.pagesize) || 10;
+    const keyword = req.query.keyword || "";
 
     // 2. 검색 조건 만들기
     let searchFilter = {};
-    if (search) {
+    if (keyword) {
       searchFilter = {
         $or: [
-          { name: { $regex: search, $options: "i" } },
-          { description: { $regex: search, $options: "i" } },
+          { name: { $regex: keyword, $options: "i" } },
+          { description: { $regex: keyword, $options: "i" } },
         ],
       };
     }
@@ -41,12 +41,17 @@ router.get("/products", async (req, res) => {
     const products = await Product.find(searchFilter)
       .select("name price createdAt")
       .sort({ createdAt: -1 })
-      .skip(offset)
-      .limit(limit);
+      .skip((page - 1) * pagesize)
+      .limit(pagesize);
 
-    res.status(200).json(products);
+    const totalCount = await Product.countDocuments(searchFilter);  
+
+    res.status(200).json({
+      list: products,
+      totalCount: totalCount
+    });
   } catch (err) {
-    res.status(500).json({ message: "목록 조회 실패!" });
+    res.status(500).json({ list: [], totalCount: 0, message: "목록 조회 실패!" });
   }
 });
 
