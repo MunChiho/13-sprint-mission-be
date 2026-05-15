@@ -1,64 +1,63 @@
 import express from "express";
-import Product from "../models/product.js";
+import prisma from "../prisma/client.js";
 
 const router = express.Router();
 
-// [ ] 상품 등록 API
-// POST /api/products
+// 상품 등록 API
+// POST /products
 router.post("/products", async (req, res) => {
   try {
     const { name, description, price, tags } = req.body;
-    const newProduct = new Product({ name, description, price, tags });
-
-    await newProduct.save();
-
-    res.status(201).json(newProduct);
+    const product = await prisma.product.create({
+      data: { name, description, price, tags },
+    });
+    res.status(201).json(product);
   } catch (err) {
     res.status(400).json({ message: "상품 등록에 실패했습니다." });
   }
 });
 
-// [ ] 상품 목록 조회 API (페이지네이션, 검색, 정렬)
-//  GET /api/products
+// 상품 목록 조회 API (페이지네이션, 검색, 정렬)
+// GET /products
 router.get("/products", async (req, res) => {
   try {
-    // 1. 주소창 주소 읽어오기 (기본값 설정)
     const page = Number(req.query.page) || 1;
-    const pagesize = Number(req.query.pagesize) || 10;
+    const pageSize = Number(req.query.pageSize) || 10;
     const keyword = req.query.keyword || "";
 
-    // 2. 검색 조건 만들기
-    let searchFilter = {};
-    if (keyword) {
-      searchFilter = {
-        $or: [
-          { name: { $regex: keyword, $options: "i" } },
-          { description: { $regex: keyword, $options: "i" } },
-        ],
-      };
-    }
+    const where = keyword
+      ? {
+          OR: [
+            { name: { contains: keyword, mode: "insensitive" } },
+            { description: { contains: keyword, mode: "insensitive" } },
+          ],
+        }
+      : {};
 
-    const products = await Product.find(searchFilter)
-      .select("name price createdAt")
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * pagesize)
-      .limit(pagesize);
+    const [products, totalCount] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        select: { id: true, name: true, price: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.product.count({ where }),
+    ]);
 
-    const totalCount = await Product.countDocuments(searchFilter);  
-
-    res.status(200).json({
-      list: products,
-      totalCount: totalCount
-    });
+    res.status(200).json({ list: products, totalCount });
   } catch (err) {
     res.status(500).json({ list: [], totalCount: 0, message: "목록 조회 실패!" });
   }
 });
 
-// [ ] 상품 상세 조회 API
+// 상품 상세 조회 API
+// GET /products/:id
 router.get("/products/:id", async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await prisma.product.findUnique({
+      where: { id: Number(req.params.id) },
+    });
 
     if (!product) {
       return res.status(404).json({ message: "상품을 찾을 수 없습니다." });
@@ -70,16 +69,22 @@ router.get("/products/:id", async (req, res) => {
   }
 });
 
-// [ ] 상품 수정 API
+// 상품 수정 API
+// PATCH /products/:id
 router.patch("/products/:id", async (req, res) => {
   try {
-    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+    const product = await prisma.product.findUnique({
+      where: { id: Number(req.params.id) },
     });
 
-    if (!updated) {
+    if (!product) {
       return res.status(404).json({ message: "수정할 상품이 없습니다." });
     }
+
+    const updated = await prisma.product.update({
+      where: { id: Number(req.params.id) },
+      data: req.body,
+    });
 
     res.status(200).json(updated);
   } catch (err) {
@@ -87,14 +92,21 @@ router.patch("/products/:id", async (req, res) => {
   }
 });
 
-// [ ] 상품 삭제 API
+// 상품 삭제 API
+// DELETE /products/:id
 router.delete("/products/:id", async (req, res) => {
   try {
-    const deleted = await Product.findByIdAndDelete(req.params.id);
+    const product = await prisma.product.findUnique({
+      where: { id: Number(req.params.id) },
+    });
 
-    if (!deleted) {
+    if (!product) {
       return res.status(404).json({ message: "삭제할 상품이 없습니다." });
     }
+
+    await prisma.product.delete({
+      where: { id: Number(req.params.id) },
+    });
 
     res.status(200).json({ message: "삭제 완료" });
   } catch (err) {
