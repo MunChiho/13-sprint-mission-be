@@ -20,6 +20,7 @@ const seedDatabase = async () => {
           description: `1일 ${i}진태입니다.`,
           price: i * 1000,
           tags: ["이진태", "챌린지"],
+          likeCount: Math.floor(Math.random() * 9999),
         },
       });
       if (i === 1) firstProductId = product.id;
@@ -33,6 +34,7 @@ const seedDatabase = async () => {
         data: {
           title: `게시글 제목 ${i}`,
           content: `게시글 내용입니다. ${i}번째 글이에요.`,
+          likeCount: Math.floor(Math.random() * 9999),
         },
       });
       if (i === 1) firstArticleId = article.id;
