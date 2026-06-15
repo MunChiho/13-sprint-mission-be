@@ -4,12 +4,11 @@ import prisma from "../prisma/client.js";
 const router = express.Router();
 
 // 게시글 등록 API
-// POST /articles
 router.post("/articles", async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, image } = req.body;
     const article = await prisma.article.create({
-      data: { title, content },
+      data: { title, content, image },
     });
     res.status(201).json(article);
   } catch (err) {
@@ -17,8 +16,7 @@ router.post("/articles", async (req, res) => {
   }
 });
 
-// 게시글 목록 조회 API (페이지네이션, 검색, 정렬)
-// GET /articles
+// 게시글 목록 조회 API
 router.get("/articles", async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
@@ -37,7 +35,7 @@ router.get("/articles", async (req, res) => {
     const [articles, totalCount] = await Promise.all([
       prisma.article.findMany({
         where,
-        select: { id: true, title: true, content: true, createdAt: true },
+        select: { id: true, title: true, content: true, image: true, likeCount: true, createdAt: true },
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -52,12 +50,11 @@ router.get("/articles", async (req, res) => {
 });
 
 // 게시글 상세 조회 API
-// GET /articles/:id
 router.get("/articles/:id", async (req, res) => {
   try {
     const article = await prisma.article.findUnique({
       where: { id: Number(req.params.id) },
-      select: { id: true, title: true, content: true, createdAt: true },
+      select: { id: true, title: true, content: true, image: true, likeCount: true, createdAt: true },
     });
 
     if (!article) {
@@ -70,8 +67,31 @@ router.get("/articles/:id", async (req, res) => {
   }
 });
 
+// 게시글 좋아요 API
+// POST /articles/:id/like
+router.post("/articles/:id/like", async (req, res) => {
+  try {
+    const article = await prisma.article.findUnique({
+      where: { id: Number(req.params.id) },
+    });
+
+    if (!article) {
+      return res.status(404).json({ message: "게시글을 찾을 수 없습니다." });
+    }
+
+    const updated = await prisma.article.update({
+      where: { id: Number(req.params.id) },
+      data: { likeCount: { increment: 1 } },
+      select: { id: true, likeCount: true },
+    });
+
+    res.status(200).json(updated);
+  } catch (err) {
+    res.status(500).json({ message: "좋아요 실패!" });
+  }
+});
+
 // 게시글 수정 API
-// PATCH /articles/:id
 router.patch("/articles/:id", async (req, res) => {
   try {
     const article = await prisma.article.findUnique({
@@ -94,7 +114,6 @@ router.patch("/articles/:id", async (req, res) => {
 });
 
 // 게시글 삭제 API
-// DELETE /articles/:id
 router.delete("/articles/:id", async (req, res) => {
   try {
     const article = await prisma.article.findUnique({
