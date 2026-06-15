@@ -22,6 +22,9 @@ router.get("/articles", async (req, res) => {
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
     const keyword = req.query.keyword || "";
+    const orderBy = req.query.orderBy === "like"
+      ? { likeCount: "desc" }
+      : { createdAt: "desc" };
 
     const where = keyword
       ? {
@@ -36,7 +39,7 @@ router.get("/articles", async (req, res) => {
       prisma.article.findMany({
         where,
         select: { id: true, title: true, content: true, image: true, likeCount: true, createdAt: true },
-        orderBy: { createdAt: "desc" },
+        orderBy: orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
@@ -68,7 +71,6 @@ router.get("/articles/:id", async (req, res) => {
 });
 
 // 게시글 좋아요 API
-// POST /articles/:id/like
 router.post("/articles/:id/like", async (req, res) => {
   try {
     const article = await prisma.article.findUnique({
