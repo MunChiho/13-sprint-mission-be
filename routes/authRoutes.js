@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import prisma from '../prisma/client.js';
+import { authenticate } from '../middleware/authenticate.js';
 
 const router = express.Router();
 
@@ -52,6 +53,20 @@ router.post('/auth/signIn', async (req, res, next) => {
       accessToken,
       user: { id: user.id, email: user.email, nickname: user.nickname, image: user.image },
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 내 정보 조회
+router.get('/users/me', authenticate, async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { id: true, email: true, nickname: true, image: true, createdAt: true, updatedAt: true },
+    });
+    if (!user) return res.status(404).json({ message: '유저를 찾을 수 없습니다.' });
+    res.status(200).json(user);
   } catch (err) {
     next(err);
   }
