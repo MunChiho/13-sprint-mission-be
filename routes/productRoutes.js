@@ -144,7 +144,7 @@ router
         where: { id: Number(req.params.id) },
         include: {
           comments: {
-            select: { id: true, content: true, createdAt: true, updatedAt: true },
+            select: { id: true, content: true, createdAt: true, updatedAt: true, author: { select: { id: true, nickname: true, image: true } } },
             orderBy: { createdAt: 'desc' },
           },
         },
