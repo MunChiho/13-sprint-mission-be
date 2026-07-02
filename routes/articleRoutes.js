@@ -130,8 +130,9 @@ router
       const article = await prisma.article.findUnique({
         where: { id: Number(req.params.id) },
         include: {
+          owner: { select: { id: true, nickname: true, image: true } },
           comments: {
-            select: { id: true, content: true, createdAt: true, updatedAt: true },
+            select: { id: true, content: true, createdAt: true, updatedAt: true, author: { select: { id: true, nickname: true, image: true } } },
             orderBy: { createdAt: 'desc' },
           },
         },
