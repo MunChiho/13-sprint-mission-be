@@ -9,8 +9,10 @@ const router = express.Router();
 /**
  * @swagger
  * tags:
- *   name: Auth
- *   description: 인증 API
+ *   - name: Auth
+ *     description: 인증 API
+ *   - name: Users
+ *     description: 유저 API
  */
 
 /**
@@ -118,7 +120,7 @@ router.post('/auth/signIn', async (req, res, next) => {
  * /users/me:
  *   get:
  *     summary: 내 정보 조회
- *     tags: [Auth]
+ *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     responses:
