@@ -7,24 +7,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id                Int              @id @default(autoincrement())
+  email             String           @unique
+  nickname          String
+  image             String?
+  encryptedPassword String
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  products          Product[]
+  articles          Article[]
+  productComments   ProductComment[]
+  articleComments   ArticleComment[]
+  productLikes      ProductLike[]
+  articleLikes      ArticleLike[]
+}
+
 model Product {
   id          Int              @id @default(autoincrement())
   name        String
   description String
   price       Int
   tags        String[]
-  image       String? 
+  images      String[]         @default([])
   likeCount   Int              @default(0)
+  ownerId     Int?
+  owner       User?            @relation(fields: [ownerId], references: [id])
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   comments    ProductComment[]
+  likes       ProductLike[]
+}
+
+model ProductLike {
+  userId    Int
+  productId Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([userId, productId])
 }
 
 model ProductComment {
   id        Int      @id @default(autoincrement())
   content   String
   productId Int
+  authorId  Int?
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  author    User?    @relation(fields: [authorId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -33,18 +63,32 @@ model Article {
   id        Int              @id @default(autoincrement())
   title     String
   content   String
-  image     String? 
-  likeCount   Int              @default(0)
+  image     String?
+  likeCount Int              @default(0)
+  ownerId   Int?
+  owner     User?            @relation(fields: [ownerId], references: [id])
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   comments  ArticleComment[]
+  likes     ArticleLike[]
+}
+
+model ArticleLike {
+  userId    Int
+  articleId Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, articleId])
 }
 
 model ArticleComment {
   id        Int      @id @default(autoincrement())
   content   String
   articleId Int
+  authorId  Int?
   article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  author    User?    @relation(fields: [authorId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
