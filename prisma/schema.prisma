@@ -63,7 +63,7 @@ model Article {
   id        Int              @id @default(autoincrement())
   title     String
   content   String
-  image     String?
+  images    String[]         @default([])
   likeCount Int              @default(0)
   ownerId   Int?
   owner     User?            @relation(fields: [ownerId], references: [id])

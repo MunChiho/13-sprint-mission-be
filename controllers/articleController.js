@@ -3,10 +3,12 @@ import { createError } from '../middleware/errorHandler.js';
 
 export async function createArticle(req, res, next) {
   try {
-    const { title, content, image } = req.body;
+    const { title, content, images } = req.body;
     if (!title || !content) throw createError(400, 'title, content는 필수입니다.');
 
-    const article = await prisma.article.create({ data: { title, content, image, ownerId: req.user.userId } });
+    const article = await prisma.article.create({
+      data: { title, content, images: images || [], ownerId: req.user.userId },
+    });
     res.status(201).json(article);
   } catch (err) {
     next(err);
@@ -27,7 +29,7 @@ export async function getArticles(req, res, next) {
     const [articles, totalCount] = await Promise.all([
       prisma.article.findMany({
         where,
-        select: { id: true, title: true, content: true, image: true, likeCount: true, createdAt: true, owner: { select: { id: true, nickname: true, image: true } } },
+        select: { id: true, title: true, content: true, images: true, likeCount: true, createdAt: true, owner: { select: { id: true, nickname: true, image: true } } },
         orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
