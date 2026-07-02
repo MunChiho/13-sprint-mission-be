@@ -1,5 +1,6 @@
 import express from 'express';
 import prisma from '../prisma/client.js';
+import { optionalAuthenticate } from '../middleware/authenticate.js';
 import { createError } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -137,13 +138,26 @@ router
    *       404:
    *         description: 상품 없음
    */
-  .get(async (req, res, next) => {
+  .get(optionalAuthenticate, async (req, res, next) => {
     try {
       const product = await prisma.product.findUnique({
         where: { id: Number(req.params.id) },
+        include: {
+          comments: {
+            select: { id: true, content: true, createdAt: true, updatedAt: true },
+            orderBy: { createdAt: 'desc' },
+          },
+        },
       });
       if (!product) throw createError(404, '상품을 찾을 수 없습니다.');
-      res.status(200).json(product);
+
+      const isLiked = req.user
+        ? !!(await prisma.productLike.findUnique({
+            where: { userId_productId: { userId: req.user.userId, productId: product.id } },
+          }))
+        : false;
+
+      res.status(200).json({ ...product, isLiked });
     } catch (err) {
       next(err);
     }
@@ -226,17 +240,75 @@ router
  *       200:
  *         description: 좋아요 성공
  */
-router.post('/products/:id/like', async (req, res, next) => {
+router.post('/products/:id/like', optionalAuthenticate, async (req, res, next) => {
   try {
-    const product = await prisma.product.findUnique({ where: { id: Number(req.params.id) } });
+    const productId = Number(req.params.id);
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ message: '인증이 필요합니다.' });
+
+    const product = await prisma.product.findUnique({ where: { id: productId } });
     if (!product) throw createError(404, '상품을 찾을 수 없습니다.');
 
-    const updated = await prisma.product.update({
-      where: { id: Number(req.params.id) },
-      data: { likeCount: { increment: 1 } },
-      select: { id: true, likeCount: true },
+    const existing = await prisma.productLike.findUnique({
+      where: { userId_productId: { userId, productId } },
     });
-    res.status(200).json(updated);
+    if (existing) throw createError(409, '이미 좋아요한 상품입니다.');
+
+    const [, updated] = await prisma.$transaction([
+      prisma.productLike.create({ data: { userId, productId } }),
+      prisma.product.update({
+        where: { id: productId },
+        data: { likeCount: { increment: 1 } },
+        select: { id: true, likeCount: true },
+      }),
+    ]);
+
+    res.status(200).json({ ...updated, isLiked: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @swagger
+ * /products/{id}/like:
+ *   delete:
+ *     summary: 상품 좋아요 취소
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: 좋아요 취소 성공
+ */
+router.delete('/products/:id/like', optionalAuthenticate, async (req, res, next) => {
+  try {
+    const productId = Number(req.params.id);
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ message: '인증이 필요합니다.' });
+
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product) throw createError(404, '상품을 찾을 수 없습니다.');
+
+    const existing = await prisma.productLike.findUnique({
+      where: { userId_productId: { userId, productId } },
+    });
+    if (!existing) throw createError(409, '좋아요하지 않은 상품입니다.');
+
+    const [, updated] = await prisma.$transaction([
+      prisma.productLike.delete({ where: { userId_productId: { userId, productId } } }),
+      prisma.product.update({
+        where: { id: productId },
+        data: { likeCount: { decrement: 1 } },
+        select: { id: true, likeCount: true },
+      }),
+    ]);
+
+    res.status(200).json({ ...updated, isLiked: false });
   } catch (err) {
     next(err);
   }

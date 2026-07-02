@@ -1,5 +1,6 @@
 import express from 'express';
 import prisma from '../prisma/client.js';
+import { optionalAuthenticate } from '../middleware/authenticate.js';
 import { createError } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -124,14 +125,26 @@ router
    *       404:
    *         description: 게시글 없음
    */
-  .get(async (req, res, next) => {
+  .get(optionalAuthenticate, async (req, res, next) => {
     try {
       const article = await prisma.article.findUnique({
         where: { id: Number(req.params.id) },
-        select: { id: true, title: true, content: true, image: true, likeCount: true, createdAt: true },
+        include: {
+          comments: {
+            select: { id: true, content: true, createdAt: true, updatedAt: true },
+            orderBy: { createdAt: 'desc' },
+          },
+        },
       });
       if (!article) throw createError(404, '게시글을 찾을 수 없습니다.');
-      res.status(200).json(article);
+
+      const isLiked = req.user
+        ? !!(await prisma.articleLike.findUnique({
+            where: { userId_articleId: { userId: req.user.userId, articleId: article.id } },
+          }))
+        : false;
+
+      res.status(200).json({ ...article, isLiked });
     } catch (err) {
       next(err);
     }
@@ -210,17 +223,75 @@ router
  *       200:
  *         description: 좋아요 성공
  */
-router.post('/articles/:id/like', async (req, res, next) => {
+router.post('/articles/:id/like', optionalAuthenticate, async (req, res, next) => {
   try {
-    const article = await prisma.article.findUnique({ where: { id: Number(req.params.id) } });
+    const articleId = Number(req.params.id);
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ message: '인증이 필요합니다.' });
+
+    const article = await prisma.article.findUnique({ where: { id: articleId } });
     if (!article) throw createError(404, '게시글을 찾을 수 없습니다.');
 
-    const updated = await prisma.article.update({
-      where: { id: Number(req.params.id) },
-      data: { likeCount: { increment: 1 } },
-      select: { id: true, likeCount: true },
+    const existing = await prisma.articleLike.findUnique({
+      where: { userId_articleId: { userId, articleId } },
     });
-    res.status(200).json(updated);
+    if (existing) throw createError(409, '이미 좋아요한 게시글입니다.');
+
+    const [, updated] = await prisma.$transaction([
+      prisma.articleLike.create({ data: { userId, articleId } }),
+      prisma.article.update({
+        where: { id: articleId },
+        data: { likeCount: { increment: 1 } },
+        select: { id: true, likeCount: true },
+      }),
+    ]);
+
+    res.status(200).json({ ...updated, isLiked: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @swagger
+ * /articles/{id}/like:
+ *   delete:
+ *     summary: 게시글 좋아요 취소
+ *     tags: [Articles]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: 좋아요 취소 성공
+ */
+router.delete('/articles/:id/like', optionalAuthenticate, async (req, res, next) => {
+  try {
+    const articleId = Number(req.params.id);
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ message: '인증이 필요합니다.' });
+
+    const article = await prisma.article.findUnique({ where: { id: articleId } });
+    if (!article) throw createError(404, '게시글을 찾을 수 없습니다.');
+
+    const existing = await prisma.articleLike.findUnique({
+      where: { userId_articleId: { userId, articleId } },
+    });
+    if (!existing) throw createError(409, '좋아요하지 않은 게시글입니다.');
+
+    const [, updated] = await prisma.$transaction([
+      prisma.articleLike.delete({ where: { userId_articleId: { userId, articleId } } }),
+      prisma.article.update({
+        where: { id: articleId },
+        data: { likeCount: { decrement: 1 } },
+        select: { id: true, likeCount: true },
+      }),
+    ]);
+
+    res.status(200).json({ ...updated, isLiked: false });
   } catch (err) {
     next(err);
   }
