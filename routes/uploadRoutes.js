@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import { uploadImage } from '../controllers/uploadController.js';
 
 const router = express.Router();
 
@@ -25,6 +26,13 @@ const upload = multer({
 
 /**
  * @swagger
+ * tags:
+ *   name: Upload
+ *   description: 이미지 업로드 API
+ */
+
+/**
+ * @swagger
  * /images/upload:
  *   post:
  *     summary: 이미지 업로드
@@ -35,12 +43,13 @@ const upload = multer({
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required: [image]
  *             properties:
  *               image:
  *                 type: string
  *                 format: binary
  *     responses:
- *       200:
+ *       201:
  *         description: 업로드 성공, 이미지 URL 반환
  *         content:
  *           application/json:
@@ -49,14 +58,13 @@ const upload = multer({
  *               properties:
  *                 url:
  *                   type: string
+ *       400:
+ *         description: 파일 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
  */
-router.post('/images/upload', upload.single('image'), (req, res, next) => {
-  try {
-    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-    res.status(200).json({ url: imageUrl });
-  } catch (err) {
-    next(err);
-  }
-});
+router.post('/images/upload', upload.single('image'), uploadImage);
 
 export default router;
