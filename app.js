@@ -8,6 +8,7 @@ import articleRoutes from './routes/articleRoutes.js';
 import productCommentRoutes from './routes/productCommentRoutes.js';
 import articleCommentRoutes from './routes/articleCommentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -17,8 +18,10 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/uploads', express.static('uploads'));
 
 app.use('/', authRoutes);
+app.use('/', uploadRoutes);
 app.use('/', productRoutes);
 app.use('/', articleRoutes);
 app.use('/', productCommentRoutes);
