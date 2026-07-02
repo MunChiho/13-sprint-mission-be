@@ -93,7 +93,7 @@ router
 
       const comments = await prisma.productComment.findMany({
         where: { productId },
-        select: { id: true, content: true, createdAt: true, updatedAt: true },
+        select: { id: true, content: true, createdAt: true, updatedAt: true, author: { select: { id: true, nickname: true, image: true } } },
         orderBy: { createdAt: 'desc' },
         take: limit,
         ...(cursor && { cursor: { id: cursor }, skip: 1 }),
