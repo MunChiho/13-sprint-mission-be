@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticate } from '../middleware/authenticate.js';
-import { signUp, signIn, getMe } from '../controllers/authController.js';
+import { signUp, signIn, refresh, signOut, getMe } from '../controllers/authController.js';
 
 const router = express.Router();
 
@@ -87,6 +87,44 @@ router.post('/auth/signUp', signUp);
  *               $ref: '#/components/schemas/MessageResponse'
  */
 router.post('/auth/signIn', signIn);
+
+/**
+ * @swagger
+ * /auth/refresh:
+ *   post:
+ *     summary: 액세스 토큰 재발급 (sliding session)
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [refreshToken]
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 새 accessToken, refreshToken 반환
+ *       401:
+ *         description: 유효하지 않은 refreshToken
+ */
+router.post('/auth/refresh', refresh);
+
+/**
+ * @swagger
+ * /auth/signOut:
+ *   post:
+ *     summary: 로그아웃
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 로그아웃 완료
+ */
+router.post('/auth/signOut', authenticate, signOut);
 
 /**
  * @swagger
