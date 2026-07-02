@@ -38,8 +38,35 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: 회원가입 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 email:
+ *                   type: string
+ *                 nickname:
+ *                   type: string
+ *                 image:
+ *                   type: string
+ *                   nullable: true
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
  *       409:
  *         description: 이미 사용 중인 이메일
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  */
 router.post('/auth/signUp', async (req, res, next) => {
   try {
@@ -84,8 +111,34 @@ router.post('/auth/signUp', async (req, res, next) => {
  *     responses:
  *       200:
  *         description: 로그인 성공 (accessToken 반환)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     email:
+ *                       type: string
+ *                     nickname:
+ *                       type: string
+ *                     image:
+ *                       type: string
+ *                       nullable: true
  *       401:
  *         description: 이메일 또는 비밀번호 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  */
 router.post('/auth/signIn', async (req, res, next) => {
   try {
@@ -126,10 +179,44 @@ router.post('/auth/signIn', async (req, res, next) => {
  *     responses:
  *       200:
  *         description: 유저 정보 반환
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 email:
+ *                   type: string
+ *                 nickname:
+ *                   type: string
+ *                 image:
+ *                   type: string
+ *                   nullable: true
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
  *       401:
  *         description: 인증 필요
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  *       404:
  *         description: 유저 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  */
 router.get('/users/me', authenticate, async (req, res, next) => {
   try {
