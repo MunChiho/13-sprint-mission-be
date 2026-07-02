@@ -91,7 +91,7 @@ router
       const [articles, totalCount] = await Promise.all([
         prisma.article.findMany({
           where,
-          select: { id: true, title: true, content: true, image: true, likeCount: true, createdAt: true },
+          select: { id: true, title: true, content: true, image: true, likeCount: true, createdAt: true, owner: { select: { id: true, nickname: true, image: true } } },
           orderBy,
           skip: (page - 1) * pageSize,
           take: pageSize,
