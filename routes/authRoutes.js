@@ -6,7 +6,39 @@ import { authenticate } from '../middleware/authenticate.js';
 
 const router = express.Router();
 
-// 회원가입
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: 인증 API
+ */
+
+/**
+ * @swagger
+ * /auth/signUp:
+ *   post:
+ *     summary: 회원가입
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, nickname, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               nickname:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: 회원가입 성공
+ *       409:
+ *         description: 이미 사용 중인 이메일
+ */
 router.post('/auth/signUp', async (req, res, next) => {
   try {
     const { email, nickname, password } = req.body;
@@ -29,7 +61,30 @@ router.post('/auth/signUp', async (req, res, next) => {
   }
 });
 
-// 로그인
+/**
+ * @swagger
+ * /auth/signIn:
+ *   post:
+ *     summary: 로그인
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 로그인 성공 (accessToken 반환)
+ *       401:
+ *         description: 이메일 또는 비밀번호 오류
+ */
 router.post('/auth/signIn', async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -58,7 +113,22 @@ router.post('/auth/signIn', async (req, res, next) => {
   }
 });
 
-// 내 정보 조회
+/**
+ * @swagger
+ * /users/me:
+ *   get:
+ *     summary: 내 정보 조회
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 유저 정보 반환
+ *       401:
+ *         description: 인증 필요
+ *       404:
+ *         description: 유저 없음
+ */
 router.get('/users/me', authenticate, async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
