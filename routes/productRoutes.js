@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../prisma/client.js';
-import { optionalAuthenticate } from '../middleware/authenticate.js';
+import { authenticate, optionalAuthenticate } from '../middleware/authenticate.js';
 import { createError } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -48,14 +48,14 @@ router
    *       400:
    *         description: 잘못된 요청
    */
-  .post(async (req, res, next) => {
+  .post(authenticate, async (req, res, next) => {
     try {
       const { name, description, price, tags, images } = req.body;
       if (!name || !description || price == null) {
         throw createError(400, 'name, description, price는 필수입니다.');
       }
       const product = await prisma.product.create({
-        data: { name, description, price, tags: tags || [], images: images || [] },
+        data: { name, description, price, tags: tags || [], images: images || [], ownerId: req.user.userId },
       });
       res.status(201).json(product);
     } catch (err) {
@@ -180,10 +180,11 @@ router
    *       404:
    *         description: 상품 없음
    */
-  .patch(async (req, res, next) => {
+  .patch(authenticate, async (req, res, next) => {
     try {
       const product = await prisma.product.findUnique({ where: { id: Number(req.params.id) } });
       if (!product) throw createError(404, '상품을 찾을 수 없습니다.');
+      if (product.ownerId !== req.user.userId) throw createError(403, '수정 권한이 없습니다.');
 
       const updated = await prisma.product.update({
         where: { id: Number(req.params.id) },
@@ -200,6 +201,8 @@ router
    *   delete:
    *     summary: 상품 삭제
    *     tags: [Products]
+   *     security:
+   *       - bearerAuth: []
    *     parameters:
    *       - in: path
    *         name: id
@@ -209,13 +212,16 @@ router
    *     responses:
    *       200:
    *         description: 삭제 성공
+   *       403:
+   *         description: 권한 없음
    *       404:
    *         description: 상품 없음
    */
-  .delete(async (req, res, next) => {
+  .delete(authenticate, async (req, res, next) => {
     try {
       const product = await prisma.product.findUnique({ where: { id: Number(req.params.id) } });
       if (!product) throw createError(404, '상품을 찾을 수 없습니다.');
+      if (product.ownerId !== req.user.userId) throw createError(403, '삭제 권한이 없습니다.');
 
       await prisma.product.delete({ where: { id: Number(req.params.id) } });
       res.status(200).json({ message: '삭제 완료' });

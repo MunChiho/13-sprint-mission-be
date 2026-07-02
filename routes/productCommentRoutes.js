@@ -1,5 +1,6 @@
 import express from 'express';
 import prisma from '../prisma/client.js';
+import { authenticate } from '../middleware/authenticate.js';
 import { createError } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -39,7 +40,7 @@ router
    *       201:
    *         description: 댓글 등록 성공
    */
-  .post(async (req, res, next) => {
+  .post(authenticate, async (req, res, next) => {
     try {
       const productId = Number(req.params.productId);
       const { content } = req.body;
@@ -49,7 +50,7 @@ router
       if (!product) throw createError(404, '상품을 찾을 수 없습니다.');
 
       const comment = await prisma.productComment.create({
-        data: { content, productId },
+        data: { content, productId, authorId: req.user.userId },
         select: { id: true, content: true, createdAt: true, updatedAt: true },
       });
       res.status(201).json(comment);
@@ -123,10 +124,11 @@ router
    *       200:
    *         description: 수정 성공
    */
-  .patch(async (req, res, next) => {
+  .patch(authenticate, async (req, res, next) => {
     try {
       const comment = await prisma.productComment.findUnique({ where: { id: Number(req.params.id) } });
       if (!comment) throw createError(404, '댓글을 찾을 수 없습니다.');
+      if (comment.authorId !== req.user.userId) throw createError(403, '수정 권한이 없습니다.');
 
       const updated = await prisma.productComment.update({
         where: { id: Number(req.params.id) },
@@ -144,6 +146,8 @@ router
    *   delete:
    *     summary: 상품 댓글 삭제
    *     tags: [ProductComments]
+   *     security:
+   *       - bearerAuth: []
    *     parameters:
    *       - in: path
    *         name: id
@@ -153,11 +157,14 @@ router
    *     responses:
    *       200:
    *         description: 삭제 성공
+   *       403:
+   *         description: 권한 없음
    */
-  .delete(async (req, res, next) => {
+  .delete(authenticate, async (req, res, next) => {
     try {
       const comment = await prisma.productComment.findUnique({ where: { id: Number(req.params.id) } });
       if (!comment) throw createError(404, '댓글을 찾을 수 없습니다.');
+      if (comment.authorId !== req.user.userId) throw createError(403, '삭제 권한이 없습니다.');
 
       await prisma.productComment.delete({ where: { id: Number(req.params.id) } });
       res.status(200).json({ message: '삭제 완료' });

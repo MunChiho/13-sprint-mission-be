@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../prisma/client.js';
-import { optionalAuthenticate } from '../middleware/authenticate.js';
+import { authenticate, optionalAuthenticate } from '../middleware/authenticate.js';
 import { createError } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -38,12 +38,12 @@ router
    *       201:
    *         description: 게시글 등록 성공
    */
-  .post(async (req, res, next) => {
+  .post(authenticate, async (req, res, next) => {
     try {
       const { title, content, image } = req.body;
       if (!title || !content) throw createError(400, 'title, content는 필수입니다.');
 
-      const article = await prisma.article.create({ data: { title, content, image } });
+      const article = await prisma.article.create({ data: { title, content, image, ownerId: req.user.userId } });
       res.status(201).json(article);
     } catch (err) {
       next(err);
@@ -165,10 +165,11 @@ router
    *       200:
    *         description: 수정 성공
    */
-  .patch(async (req, res, next) => {
+  .patch(authenticate, async (req, res, next) => {
     try {
       const article = await prisma.article.findUnique({ where: { id: Number(req.params.id) } });
       if (!article) throw createError(404, '게시글을 찾을 수 없습니다.');
+      if (article.ownerId !== req.user.userId) throw createError(403, '수정 권한이 없습니다.');
 
       const updated = await prisma.article.update({
         where: { id: Number(req.params.id) },
@@ -185,6 +186,8 @@ router
    *   delete:
    *     summary: 게시글 삭제
    *     tags: [Articles]
+   *     security:
+   *       - bearerAuth: []
    *     parameters:
    *       - in: path
    *         name: id
@@ -194,11 +197,14 @@ router
    *     responses:
    *       200:
    *         description: 삭제 성공
+   *       403:
+   *         description: 권한 없음
    */
-  .delete(async (req, res, next) => {
+  .delete(authenticate, async (req, res, next) => {
     try {
       const article = await prisma.article.findUnique({ where: { id: Number(req.params.id) } });
       if (!article) throw createError(404, '게시글을 찾을 수 없습니다.');
+      if (article.ownerId !== req.user.userId) throw createError(403, '삭제 권한이 없습니다.');
 
       await prisma.article.delete({ where: { id: Number(req.params.id) } });
       res.status(200).json({ message: '삭제 완료' });
