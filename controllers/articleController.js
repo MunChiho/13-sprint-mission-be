@@ -26,10 +26,16 @@ export async function getArticles(req, res, next) {
       ? { OR: [{ title: { contains: keyword, mode: 'insensitive' } }, { content: { contains: keyword, mode: 'insensitive' } }] }
       : {};
 
+    const userId = req.user?.userId;
+
     const [articles, totalCount] = await Promise.all([
       prisma.article.findMany({
         where,
-        select: { id: true, title: true, content: true, images: true, likeCount: true, createdAt: true, owner: { select: { id: true, nickname: true, image: true } } },
+        select: {
+          id: true, title: true, content: true, images: true, likeCount: true, createdAt: true,
+          owner: { select: { id: true, nickname: true, image: true } },
+          ...(userId && { likes: { where: { userId }, select: { userId: true } } }),
+        },
         orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -37,7 +43,12 @@ export async function getArticles(req, res, next) {
       prisma.article.count({ where }),
     ]);
 
-    res.status(200).json({ list: articles, totalCount });
+    const list = articles.map(({ likes, ...a }) => ({
+      ...a,
+      isLiked: userId ? (likes?.length > 0) : false,
+    }));
+
+    res.status(200).json({ list, totalCount });
   } catch (err) {
     next(err);
   }

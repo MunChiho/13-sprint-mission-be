@@ -92,7 +92,7 @@ router
    *                 totalCount:
    *                   type: integer
    */
-  .get(getArticles);
+  .get(optionalAuthenticate, getArticles);
 
 router
   .route('/articles/:id')

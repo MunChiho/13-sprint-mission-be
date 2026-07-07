@@ -27,10 +27,15 @@ export async function getProducts(req, res, next) {
       ? { OR: [{ name: { contains: keyword, mode: 'insensitive' } }, { description: { contains: keyword, mode: 'insensitive' } }] }
       : {};
 
+    const userId = req.user?.userId;
+
     const [products, totalCount] = await Promise.all([
       prisma.product.findMany({
         where,
-        select: { id: true, name: true, price: true, images: true, likeCount: true, createdAt: true },
+        select: {
+          id: true, name: true, price: true, images: true, likeCount: true, createdAt: true,
+          ...(userId && { likes: { where: { userId }, select: { userId: true } } }),
+        },
         orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -38,7 +43,12 @@ export async function getProducts(req, res, next) {
       prisma.product.count({ where }),
     ]);
 
-    res.status(200).json({ list: products, totalCount });
+    const list = products.map(({ likes, ...p }) => ({
+      ...p,
+      isLiked: userId ? (likes?.length > 0) : false,
+    }));
+
+    res.status(200).json({ list, totalCount });
   } catch (err) {
     next(err);
   }
@@ -49,6 +59,7 @@ export async function getProduct(req, res, next) {
     const product = await prisma.product.findUnique({
       where: { id: Number(req.params.id) },
       include: {
+        owner: { select: { id: true, nickname: true, image: true } },
         comments: {
           select: { id: true, content: true, createdAt: true, updatedAt: true, author: { select: { id: true, nickname: true, image: true } } },
           orderBy: { createdAt: 'desc' },

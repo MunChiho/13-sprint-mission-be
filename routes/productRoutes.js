@@ -81,7 +81,7 @@ router
    *       200:
    *         description: 상품 목록
    */
-  .get(getProducts);
+  .get(optionalAuthenticate, getProducts);
 
 router
   .route('/products/:id')
