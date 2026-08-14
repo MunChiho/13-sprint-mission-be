@@ -1,9 +1,14 @@
-import express from 'express';
-import { authenticate, optionalAuthenticate } from '../middleware/authenticate.js';
+import express from "express";
+import { authenticate, optionalAuthenticate } from "../middleware/authenticate.js";
 import {
-  createProduct, getProducts, getProduct,
-  updateProduct, deleteProduct, likeProduct, unlikeProduct,
-} from '../controllers/productController.js';
+  createProduct,
+  getProducts,
+  getProduct,
+  updateProduct,
+  deleteProduct,
+  likeProduct,
+  unlikeProduct,
+} from "../controllers/productController.js";
 
 const router = express.Router();
 
@@ -15,7 +20,7 @@ const router = express.Router();
  */
 
 router
-  .route('/products')
+  .route("/products")
   /**
    * @swagger
    * /products:
@@ -84,7 +89,7 @@ router
   .get(optionalAuthenticate, getProducts);
 
 router
-  .route('/products/:id')
+  .route("/products/:id")
   /**
    * @swagger
    * /products/{id}:
@@ -167,7 +172,7 @@ router
  *       200:
  *         description: 좋아요 성공
  */
-router.post('/products/:id/like', optionalAuthenticate, likeProduct);
+router.post("/products/:id/like", optionalAuthenticate, likeProduct);
 
 /**
  * @swagger
@@ -187,6 +192,6 @@ router.post('/products/:id/like', optionalAuthenticate, likeProduct);
  *       200:
  *         description: 좋아요 취소 성공
  */
-router.delete('/products/:id/like', optionalAuthenticate, unlikeProduct);
+router.delete("/products/:id/like", optionalAuthenticate, unlikeProduct);
 
 export default router;

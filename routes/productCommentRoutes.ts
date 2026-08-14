@@ -1,9 +1,11 @@
-import express from 'express';
-import { authenticate } from '../middleware/authenticate.js';
+import express from "express";
+import { authenticate } from "../middleware/authenticate.js";
 import {
-  createProductComment, getProductComments,
-  updateProductComment, deleteProductComment,
-} from '../controllers/productCommentController.js';
+  createProductComment,
+  getProductComments,
+  updateProductComment,
+  deleteProductComment,
+} from "../controllers/productCommentController.js";
 
 const router = express.Router();
 
@@ -15,7 +17,7 @@ const router = express.Router();
  */
 
 router
-  .route('/products/:productId/comments')
+  .route("/products/:productId/comments")
   /**
    * @swagger
    * /products/{productId}/comments:
@@ -72,7 +74,7 @@ router
   .get(getProductComments);
 
 router
-  .route('/products/comments/:id')
+  .route("/products/comments/:id")
   /**
    * @swagger
    * /products/comments/{id}:
