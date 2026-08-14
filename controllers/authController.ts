@@ -1,10 +1,10 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
-import prisma from "../prisma/client.js";
-import { env } from "../config/env.js";
-import type { AuthTokens } from "../types/auth.js";
-import { verifyAuthToken } from "../lib/authToken.js";
+import prisma from "../prisma/client";
+import { env } from "../config/env";
+import type { AuthTokens } from "../types/auth";
+import { verifyAuthToken } from "../lib/authToken";
 
 function generateTokens(userId: number, email: string): AuthTokens {
   const accessToken = jwt.sign({ userId, email }, env.jwtSecret, { expiresIn: "1h" });

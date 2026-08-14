@@ -1,11 +1,11 @@
 import express from "express";
-import { authenticate } from "../middleware/authenticate.js";
+import { authenticate } from "../middleware/authenticate";
 import {
   createProductComment,
   getProductComments,
   updateProductComment,
   deleteProductComment,
-} from "../controllers/productCommentController.js";
+} from "../controllers/productCommentController";
 
 const router = express.Router();
 

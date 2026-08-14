@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
-import prisma from "../prisma/client.js";
-import { createError } from "../middleware/errorHandler.js";
+import prisma from "../prisma/client";
+import { createError } from "../middleware/errorHandler";
 
 interface CommentBody {
   content: string;

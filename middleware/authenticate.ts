@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
-import { env } from "../config/env.js";
-import { verifyAuthToken } from "../lib/authToken.js";
+import { env } from "../config/env";
+import { verifyAuthToken } from "../lib/authToken";
 
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;

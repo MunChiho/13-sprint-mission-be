@@ -1,5 +1,5 @@
-import type { AuthTokenPayload } from "../auth.js";
-import type { UserProfile } from "../user.js";
+import type { AuthTokenPayload } from "../auth";
+import type { UserProfile } from "../user";
 
 declare global {
   namespace Express {

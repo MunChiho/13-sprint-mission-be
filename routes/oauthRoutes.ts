@@ -1,9 +1,9 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import type { Request, Response } from "express";
-import passport from "../config/passport.js";
-import prisma from "../prisma/client.js";
-import { env } from "../config/env.js";
+import passport from "../config/passport";
+import prisma from "../prisma/client";
+import { env } from "../config/env";
 
 const router = express.Router();
 

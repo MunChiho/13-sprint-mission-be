@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
 import type { Request, Response, NextFunction } from "express";
-import prisma from "../prisma/client.js";
-import { createError } from "../middleware/errorHandler.js";
-import type { CreateArticleBody, UpdateArticleBody } from "../types/article.js";
+import prisma from "../prisma/client";
+import { createError } from "../middleware/errorHandler";
+import type { CreateArticleBody, UpdateArticleBody } from "../types/article";
 
 export async function createArticle(
   req: Request<unknown, unknown, Partial<CreateArticleBody>>,

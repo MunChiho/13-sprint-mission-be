@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import type { AuthTokenPayload } from "../types/auth.js";
+import type { AuthTokenPayload } from "../types/auth";
 
 export function isAuthTokenPayload(payload: unknown): payload is AuthTokenPayload {
   return (

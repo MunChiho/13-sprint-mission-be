@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticate, optionalAuthenticate } from "../middleware/authenticate.js";
+import { authenticate, optionalAuthenticate } from "../middleware/authenticate";
 import {
   createProduct,
   getProducts,
@@ -8,7 +8,7 @@ import {
   deleteProduct,
   likeProduct,
   unlikeProduct,
-} from "../controllers/productController.js";
+} from "../controllers/productController";
 
 const router = express.Router();
 

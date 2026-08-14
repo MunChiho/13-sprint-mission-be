@@ -1,5 +1,5 @@
-import type { AuthUserSummary } from "./user.js";
-import type { CommentWithAuthor } from "./comment.js";
+import type { AuthUserSummary } from "./user";
+import type { CommentWithAuthor } from "./comment";
 
 export interface ArticleListItem {
   id: number;

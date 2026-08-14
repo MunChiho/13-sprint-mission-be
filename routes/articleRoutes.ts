@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticate, optionalAuthenticate } from "../middleware/authenticate.js";
+import { authenticate, optionalAuthenticate } from "../middleware/authenticate";
 import {
   createArticle,
   getArticles,
@@ -8,7 +8,7 @@ import {
   deleteArticle,
   likeArticle,
   unlikeArticle,
-} from "../controllers/articleController.js";
+} from "../controllers/articleController";
 
 const router = express.Router();
 

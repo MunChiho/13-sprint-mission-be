@@ -1,4 +1,4 @@
-import type { AuthUserSummary } from "./user.js";
+import type { AuthUserSummary } from "./user";
 
 export type CommentAuthor = AuthUserSummary;
 
