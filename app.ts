@@ -33,5 +33,7 @@ app.use("/", articleCommentRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(env.port, () => console.log(`🚀 서버 시작: http://localhost:${env.port}`));// 테스트
+app.listen(env.port, () =>
+  console.log(`🚀 서버 시작: http://localhost:${env.port}`),
+); // 테스트
 // 테스트

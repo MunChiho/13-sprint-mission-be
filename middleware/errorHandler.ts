@@ -14,9 +14,15 @@ export function createError(status: number, message: string): AppError {
   return new AppError(status, message);
 }
 
-export function errorHandler(err: unknown, req: Request, res: Response, next: NextFunction): void {
+export function errorHandler(
+  err: unknown,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const status = err instanceof AppError ? err.status : 500;
-  const message = err instanceof Error ? err.message : "서버 오류가 발생했습니다.";
+  const message =
+    err instanceof Error ? err.message : "서버 오류가 발생했습니다.";
   res.status(status).json({ message });
 }
 

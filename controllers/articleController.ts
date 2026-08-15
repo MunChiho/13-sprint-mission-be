@@ -10,11 +10,15 @@ export async function createArticle(
   next: NextFunction,
 ) {
   try {
+    if (!req.auth) {
+      return res.status(401).json({ message: "인증이 필요합니다." });
+    }
     const { title, content, images } = req.body;
-    if (!title || !content) throw createError(400, "title, content는 필수입니다.");
+    if (!title || !content)
+      throw createError(400, "title, content는 필수입니다.");
 
     const article = await prisma.article.create({
-      data: { title, content, images: images ?? [], ownerId: req.auth?.userId },
+      data: { title, content, images: images ?? [], ownerId: req.auth.userId },
     });
     res.status(201).json(article);
   } catch (err) {
@@ -22,13 +26,20 @@ export async function createArticle(
   }
 }
 
-export async function getArticles(req: Request, res: Response, next: NextFunction) {
+export async function getArticles(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
-    const keyword = typeof req.query.keyword === "string" ? req.query.keyword : "";
+    const keyword =
+      typeof req.query.keyword === "string" ? req.query.keyword : "";
     const orderBy: Prisma.ArticleOrderByWithRelationInput =
-      req.query.orderBy === "like" ? { likeCount: "desc" } : { createdAt: "desc" };
+      req.query.orderBy === "like"
+        ? { likeCount: "desc" }
+        : { createdAt: "desc" };
 
     const where: Prisma.ArticleWhereInput = keyword
       ? {
@@ -52,7 +63,9 @@ export async function getArticles(req: Request, res: Response, next: NextFunctio
           likeCount: true,
           createdAt: true,
           owner: { select: { id: true, nickname: true, image: true } },
-          ...(userId && { likes: { where: { userId }, select: { userId: true } } }),
+          ...(userId && {
+            likes: { where: { userId }, select: { userId: true } },
+          }),
         },
         orderBy,
         skip: (page - 1) * pageSize,
@@ -72,7 +85,11 @@ export async function getArticles(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export async function getArticle(req: Request, res: Response, next: NextFunction) {
+export async function getArticle(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const article = await prisma.article.findUnique({
       where: { id: Number(req.params.id) },
@@ -94,7 +111,12 @@ export async function getArticle(req: Request, res: Response, next: NextFunction
 
     const isLiked = req.auth
       ? !!(await prisma.articleLike.findUnique({
-          where: { userId_articleId: { userId: req.auth.userId, articleId: article.id } },
+          where: {
+            userId_articleId: {
+              userId: req.auth.userId,
+              articleId: article.id,
+            },
+          },
         }))
       : false;
 
@@ -110,9 +132,12 @@ export async function updateArticle(
   next: NextFunction,
 ) {
   try {
-    const article = await prisma.article.findUnique({ where: { id: Number(req.params.id) } });
+    const article = await prisma.article.findUnique({
+      where: { id: Number(req.params.id) },
+    });
     if (!article) throw createError(404, "게시글을 찾을 수 없습니다.");
-    if (article.ownerId !== req.auth?.userId) throw createError(403, "수정 권한이 없습니다.");
+    if (article.ownerId !== req.auth?.userId)
+      throw createError(403, "수정 권한이 없습니다.");
 
     const updated = await prisma.article.update({
       where: { id: Number(req.params.id) },
@@ -124,11 +149,18 @@ export async function updateArticle(
   }
 }
 
-export async function deleteArticle(req: Request, res: Response, next: NextFunction) {
+export async function deleteArticle(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
-    const article = await prisma.article.findUnique({ where: { id: Number(req.params.id) } });
+    const article = await prisma.article.findUnique({
+      where: { id: Number(req.params.id) },
+    });
     if (!article) throw createError(404, "게시글을 찾을 수 없습니다.");
-    if (article.ownerId !== req.auth?.userId) throw createError(403, "삭제 권한이 없습니다.");
+    if (article.ownerId !== req.auth?.userId)
+      throw createError(403, "삭제 권한이 없습니다.");
 
     await prisma.article.delete({ where: { id: Number(req.params.id) } });
     res.status(200).json({ message: "삭제 완료" });
@@ -137,13 +169,19 @@ export async function deleteArticle(req: Request, res: Response, next: NextFunct
   }
 }
 
-export async function likeArticle(req: Request, res: Response, next: NextFunction) {
+export async function likeArticle(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const articleId = Number(req.params.id);
     const userId = req.auth?.userId;
     if (!userId) return res.status(401).json({ message: "인증이 필요합니다." });
 
-    const article = await prisma.article.findUnique({ where: { id: articleId } });
+    const article = await prisma.article.findUnique({
+      where: { id: articleId },
+    });
     if (!article) throw createError(404, "게시글을 찾을 수 없습니다.");
 
     const existing = await prisma.articleLike.findUnique({
@@ -166,13 +204,19 @@ export async function likeArticle(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export async function unlikeArticle(req: Request, res: Response, next: NextFunction) {
+export async function unlikeArticle(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const articleId = Number(req.params.id);
     const userId = req.auth?.userId;
     if (!userId) return res.status(401).json({ message: "인증이 필요합니다." });
 
-    const article = await prisma.article.findUnique({ where: { id: articleId } });
+    const article = await prisma.article.findUnique({
+      where: { id: articleId },
+    });
     if (!article) throw createError(404, "게시글을 찾을 수 없습니다.");
 
     const existing = await prisma.articleLike.findUnique({
@@ -181,7 +225,9 @@ export async function unlikeArticle(req: Request, res: Response, next: NextFunct
     if (!existing) throw createError(409, "좋아요하지 않은 게시글입니다.");
 
     const [, updated] = await prisma.$transaction([
-      prisma.articleLike.delete({ where: { userId_articleId: { userId, articleId } } }),
+      prisma.articleLike.delete({
+        where: { userId_articleId: { userId, articleId } },
+      }),
       prisma.article.update({
         where: { id: articleId },
         data: { likeCount: { decrement: 1 } },

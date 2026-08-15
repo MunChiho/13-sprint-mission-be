@@ -2,7 +2,11 @@ import type { Request, Response, NextFunction } from "express";
 import { env } from "../config/env";
 import { verifyAuthToken } from "../lib/authToken";
 
-export function authenticate(req: Request, res: Response, next: NextFunction): void {
+export function authenticate(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
     res.status(401).json({ message: "인증이 필요합니다." });
@@ -18,7 +22,11 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
   }
 }
 
-export function optionalAuthenticate(req: Request, res: Response, next: NextFunction): void {
+export function optionalAuthenticate(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith("Bearer ")) {
     try {

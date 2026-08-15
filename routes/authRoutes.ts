@@ -1,6 +1,12 @@
 import express from "express";
 import { authenticate } from "../middleware/authenticate";
-import { signUp, signIn, refresh, signOut, getMe } from "../controllers/authController";
+import {
+  signUp,
+  signIn,
+  refresh,
+  signOut,
+  getMe,
+} from "../controllers/authController";
 
 const router = express.Router();
 

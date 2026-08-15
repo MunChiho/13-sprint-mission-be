@@ -15,7 +15,14 @@ export async function createProduct(
       throw createError(400, "name, description, price는 필수입니다.");
     }
     const product = await prisma.product.create({
-      data: { name, description, price, tags: tags ?? [], images: images ?? [], ownerId: req.auth?.userId },
+      data: {
+        name,
+        description,
+        price,
+        tags: tags ?? [],
+        images: images ?? [],
+        ownerId: req.auth?.userId,
+      },
     });
     res.status(201).json(product);
   } catch (err) {
@@ -23,13 +30,20 @@ export async function createProduct(
   }
 }
 
-export async function getProducts(req: Request, res: Response, next: NextFunction) {
+export async function getProducts(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const page = Number(req.query.page) || 1;
     const pageSize = Number(req.query.pageSize) || 10;
-    const keyword = typeof req.query.keyword === "string" ? req.query.keyword : "";
+    const keyword =
+      typeof req.query.keyword === "string" ? req.query.keyword : "";
     const orderBy: Prisma.ProductOrderByWithRelationInput =
-      req.query.orderBy === "like" ? { likeCount: "desc" } : { createdAt: "desc" };
+      req.query.orderBy === "like"
+        ? { likeCount: "desc" }
+        : { createdAt: "desc" };
 
     const where: Prisma.ProductWhereInput = keyword
       ? {
@@ -52,7 +66,9 @@ export async function getProducts(req: Request, res: Response, next: NextFunctio
           images: true,
           likeCount: true,
           createdAt: true,
-          ...(userId && { likes: { where: { userId }, select: { userId: true } } }),
+          ...(userId && {
+            likes: { where: { userId }, select: { userId: true } },
+          }),
         },
         orderBy,
         skip: (page - 1) * pageSize,
@@ -72,7 +88,11 @@ export async function getProducts(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export async function getProduct(req: Request, res: Response, next: NextFunction) {
+export async function getProduct(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const product = await prisma.product.findUnique({
       where: { id: Number(req.params.id) },
@@ -94,7 +114,12 @@ export async function getProduct(req: Request, res: Response, next: NextFunction
 
     const isLiked = req.auth
       ? !!(await prisma.productLike.findUnique({
-          where: { userId_productId: { userId: req.auth.userId, productId: product.id } },
+          where: {
+            userId_productId: {
+              userId: req.auth.userId,
+              productId: product.id,
+            },
+          },
         }))
       : false;
 
@@ -110,9 +135,12 @@ export async function updateProduct(
   next: NextFunction,
 ) {
   try {
-    const product = await prisma.product.findUnique({ where: { id: Number(req.params.id) } });
+    const product = await prisma.product.findUnique({
+      where: { id: Number(req.params.id) },
+    });
     if (!product) throw createError(404, "상품을 찾을 수 없습니다.");
-    if (product.ownerId !== req.auth?.userId) throw createError(403, "수정 권한이 없습니다.");
+    if (product.ownerId !== req.auth?.userId)
+      throw createError(403, "수정 권한이 없습니다.");
 
     const updated = await prisma.product.update({
       where: { id: Number(req.params.id) },
@@ -124,11 +152,18 @@ export async function updateProduct(
   }
 }
 
-export async function deleteProduct(req: Request, res: Response, next: NextFunction) {
+export async function deleteProduct(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
-    const product = await prisma.product.findUnique({ where: { id: Number(req.params.id) } });
+    const product = await prisma.product.findUnique({
+      where: { id: Number(req.params.id) },
+    });
     if (!product) throw createError(404, "상품을 찾을 수 없습니다.");
-    if (product.ownerId !== req.auth?.userId) throw createError(403, "삭제 권한이 없습니다.");
+    if (product.ownerId !== req.auth?.userId)
+      throw createError(403, "삭제 권한이 없습니다.");
 
     await prisma.product.delete({ where: { id: Number(req.params.id) } });
     res.status(200).json({ message: "삭제 완료" });
@@ -137,13 +172,19 @@ export async function deleteProduct(req: Request, res: Response, next: NextFunct
   }
 }
 
-export async function likeProduct(req: Request, res: Response, next: NextFunction) {
+export async function likeProduct(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const productId = Number(req.params.id);
     const userId = req.auth?.userId;
     if (!userId) return res.status(401).json({ message: "인증이 필요합니다." });
 
-    const product = await prisma.product.findUnique({ where: { id: productId } });
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
     if (!product) throw createError(404, "상품을 찾을 수 없습니다.");
 
     const existing = await prisma.productLike.findUnique({
@@ -166,13 +207,19 @@ export async function likeProduct(req: Request, res: Response, next: NextFunctio
   }
 }
 
-export async function unlikeProduct(req: Request, res: Response, next: NextFunction) {
+export async function unlikeProduct(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const productId = Number(req.params.id);
     const userId = req.auth?.userId;
     if (!userId) return res.status(401).json({ message: "인증이 필요합니다." });
 
-    const product = await prisma.product.findUnique({ where: { id: productId } });
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
     if (!product) throw createError(404, "상품을 찾을 수 없습니다.");
 
     const existing = await prisma.productLike.findUnique({
@@ -181,7 +228,9 @@ export async function unlikeProduct(req: Request, res: Response, next: NextFunct
     if (!existing) throw createError(409, "좋아요하지 않은 상품입니다.");
 
     const [, updated] = await prisma.$transaction([
-      prisma.productLike.delete({ where: { userId_productId: { userId, productId } } }),
+      prisma.productLike.delete({
+        where: { userId_productId: { userId, productId } },
+      }),
       prisma.product.update({
         where: { id: productId },
         data: { likeCount: { decrement: 1 } },

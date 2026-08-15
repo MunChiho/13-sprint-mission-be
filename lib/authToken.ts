@@ -1,7 +1,9 @@
 import jwt from "jsonwebtoken";
 import type { AuthTokenPayload } from "../types/auth";
 
-export function isAuthTokenPayload(payload: unknown): payload is AuthTokenPayload {
+export function isAuthTokenPayload(
+  payload: unknown,
+): payload is AuthTokenPayload {
   return (
     typeof payload === "object" &&
     payload !== null &&
@@ -10,7 +12,10 @@ export function isAuthTokenPayload(payload: unknown): payload is AuthTokenPayloa
   );
 }
 
-export function verifyAuthToken(token: string, secret: string): AuthTokenPayload {
+export function verifyAuthToken(
+  token: string,
+  secret: string,
+): AuthTokenPayload {
   const payload = jwt.verify(token, secret);
   if (!isAuthTokenPayload(payload)) {
     throw new Error("유효하지 않은 토큰 payload입니다.");

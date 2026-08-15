@@ -35,7 +35,11 @@ passport.use(
 
         return done(null, user);
       } catch (err) {
-        return done(err instanceof Error ? err : new Error("구글 로그인 처리 중 오류가 발생했습니다."));
+        return done(
+          err instanceof Error
+            ? err
+            : new Error("구글 로그인 처리 중 오류가 발생했습니다."),
+        );
       }
     },
   ),

@@ -16,7 +16,9 @@ export async function createProductComment(
     const { content } = req.body;
     if (!content) throw createError(400, "content는 필수입니다.");
 
-    const product = await prisma.product.findUnique({ where: { id: productId } });
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
     if (!product) throw createError(404, "상품을 찾을 수 없습니다.");
 
     const comment = await prisma.productComment.create({
@@ -29,13 +31,19 @@ export async function createProductComment(
   }
 }
 
-export async function getProductComments(req: Request<{ productId: string }>, res: Response, next: NextFunction) {
+export async function getProductComments(
+  req: Request<{ productId: string }>,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const productId = Number(req.params.productId);
     const limit = Number(req.query.limit) || 10;
     const cursor = req.query.cursor ? Number(req.query.cursor) : undefined;
 
-    const product = await prisma.product.findUnique({ where: { id: productId } });
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
     if (!product) throw createError(404, "상품을 찾을 수 없습니다.");
 
     const comments = await prisma.productComment.findMany({
@@ -52,7 +60,8 @@ export async function getProductComments(req: Request<{ productId: string }>, re
       ...(cursor && { cursor: { id: cursor }, skip: 1 }),
     });
 
-    const nextCursor = comments.length === limit ? comments[comments.length - 1].id : null;
+    const nextCursor =
+      comments.length === limit ? comments[comments.length - 1].id : null;
     res.status(200).json({ list: comments, nextCursor });
   } catch (err) {
     next(err);
@@ -65,9 +74,12 @@ export async function updateProductComment(
   next: NextFunction,
 ) {
   try {
-    const comment = await prisma.productComment.findUnique({ where: { id: Number(req.params.id) } });
+    const comment = await prisma.productComment.findUnique({
+      where: { id: Number(req.params.id) },
+    });
     if (!comment) throw createError(404, "댓글을 찾을 수 없습니다.");
-    if (comment.authorId !== req.auth?.userId) throw createError(403, "수정 권한이 없습니다.");
+    if (comment.authorId !== req.auth?.userId)
+      throw createError(403, "수정 권한이 없습니다.");
 
     const updated = await prisma.productComment.update({
       where: { id: Number(req.params.id) },
@@ -80,13 +92,22 @@ export async function updateProductComment(
   }
 }
 
-export async function deleteProductComment(req: Request<{ id: string }>, res: Response, next: NextFunction) {
+export async function deleteProductComment(
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction,
+) {
   try {
-    const comment = await prisma.productComment.findUnique({ where: { id: Number(req.params.id) } });
+    const comment = await prisma.productComment.findUnique({
+      where: { id: Number(req.params.id) },
+    });
     if (!comment) throw createError(404, "댓글을 찾을 수 없습니다.");
-    if (comment.authorId !== req.auth?.userId) throw createError(403, "삭제 권한이 없습니다.");
+    if (comment.authorId !== req.auth?.userId)
+      throw createError(403, "삭제 권한이 없습니다.");
 
-    await prisma.productComment.delete({ where: { id: Number(req.params.id) } });
+    await prisma.productComment.delete({
+      where: { id: Number(req.params.id) },
+    });
     res.status(200).json({ message: "삭제 완료" });
   } catch (err) {
     next(err);

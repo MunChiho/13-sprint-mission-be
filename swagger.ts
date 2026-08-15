@@ -91,7 +91,9 @@ const options: swaggerJsdoc.Options = {
                 owner: { $ref: "#/components/schemas/UserSummary" },
                 comments: {
                   type: "array",
-                  items: { $ref: "#/components/schemas/ArticleCommentWithAuthor" },
+                  items: {
+                    $ref: "#/components/schemas/ArticleCommentWithAuthor",
+                  },
                 },
                 isLiked: { type: "boolean" },
               },
@@ -112,7 +114,9 @@ const options: swaggerJsdoc.Options = {
             { $ref: "#/components/schemas/ArticleComment" },
             {
               type: "object",
-              properties: { author: { $ref: "#/components/schemas/UserSummary" } },
+              properties: {
+                author: { $ref: "#/components/schemas/UserSummary" },
+              },
             },
           ],
         },
@@ -150,7 +154,9 @@ const options: swaggerJsdoc.Options = {
               properties: {
                 comments: {
                   type: "array",
-                  items: { $ref: "#/components/schemas/ProductCommentWithAuthor" },
+                  items: {
+                    $ref: "#/components/schemas/ProductCommentWithAuthor",
+                  },
                 },
                 isLiked: { type: "boolean" },
               },
@@ -171,7 +177,9 @@ const options: swaggerJsdoc.Options = {
             { $ref: "#/components/schemas/ProductComment" },
             {
               type: "object",
-              properties: { author: { $ref: "#/components/schemas/UserSummary" } },
+              properties: {
+                author: { $ref: "#/components/schemas/UserSummary" },
+              },
             },
           ],
         },
