@@ -1,32 +1,34 @@
-import express from 'express';
-import { authenticate } from '../middleware/authenticate.js';
+import express from "express";
+import { authenticate } from "../middleware/authenticate";
 import {
-  createArticleComment, getArticleComments,
-  updateArticleComment, deleteArticleComment,
-} from '../controllers/articleCommentController.js';
+  createProductComment,
+  getProductComments,
+  updateProductComment,
+  deleteProductComment,
+} from "../controllers/productCommentController";
 
 const router = express.Router();
 
 /**
  * @swagger
  * tags:
- *   name: ArticleComments
- *   description: 게시글 댓글 API
+ *   name: ProductComments
+ *   description: 상품 댓글 API
  */
 
 router
-  .route('/articles/:articleId/comments')
+  .route("/products/:productId/comments")
   /**
    * @swagger
-   * /articles/{articleId}/comments:
+   * /products/{productId}/comments:
    *   post:
-   *     summary: 게시글 댓글 등록
-   *     tags: [ArticleComments]
+   *     summary: 상품 댓글 등록
+   *     tags: [ProductComments]
    *     security:
    *       - bearerAuth: []
    *     parameters:
    *       - in: path
-   *         name: articleId
+   *         name: productId
    *         required: true
    *         schema:
    *           type: integer
@@ -44,16 +46,16 @@ router
    *       201:
    *         description: 댓글 등록 성공
    */
-  .post(authenticate, createArticleComment)
+  .post(authenticate, createProductComment)
   /**
    * @swagger
-   * /articles/{articleId}/comments:
+   * /products/{productId}/comments:
    *   get:
-   *     summary: 게시글 댓글 목록 조회
-   *     tags: [ArticleComments]
+   *     summary: 상품 댓글 목록 조회
+   *     tags: [ProductComments]
    *     parameters:
    *       - in: path
-   *         name: articleId
+   *         name: productId
    *         required: true
    *         schema:
    *           type: integer
@@ -69,16 +71,16 @@ router
    *       200:
    *         description: 댓글 목록
    */
-  .get(getArticleComments);
+  .get(getProductComments);
 
 router
-  .route('/articles/comments/:id')
+  .route("/products/comments/:id")
   /**
    * @swagger
-   * /articles/comments/{id}:
+   * /products/comments/{id}:
    *   patch:
-   *     summary: 게시글 댓글 수정
-   *     tags: [ArticleComments]
+   *     summary: 상품 댓글 수정
+   *     tags: [ProductComments]
    *     security:
    *       - bearerAuth: []
    *     parameters:
@@ -91,13 +93,13 @@ router
    *       200:
    *         description: 수정 성공
    */
-  .patch(authenticate, updateArticleComment)
+  .patch(authenticate, updateProductComment)
   /**
    * @swagger
-   * /articles/comments/{id}:
+   * /products/comments/{id}:
    *   delete:
-   *     summary: 게시글 댓글 삭제
-   *     tags: [ArticleComments]
+   *     summary: 상품 댓글 삭제
+   *     tags: [ProductComments]
    *     security:
    *       - bearerAuth: []
    *     parameters:
@@ -110,6 +112,6 @@ router
    *       200:
    *         description: 삭제 성공
    */
-  .delete(authenticate, deleteArticleComment);
+  .delete(authenticate, deleteProductComment);
 
 export default router;

@@ -1,12 +1,12 @@
-import express from 'express';
-import multer from 'multer';
-import path from 'path';
-import { uploadImage } from '../controllers/uploadController.js';
+import express from "express";
+import multer from "multer";
+import path from "path";
+import { uploadImage } from "../controllers/uploadController";
 
 const router = express.Router();
 
 const storage = multer.diskStorage({
-  destination: 'uploads/',
+  destination: "uploads/",
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
     cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
@@ -17,8 +17,8 @@ const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (!file.mimetype.startsWith('image/')) {
-      return cb(new Error('이미지 파일만 업로드 가능합니다.'));
+    if (!file.mimetype.startsWith("image/")) {
+      return cb(new Error("이미지 파일만 업로드 가능합니다."));
     }
     cb(null, true);
   },
@@ -65,6 +65,6 @@ const upload = multer({
  *             schema:
  *               $ref: '#/components/schemas/MessageResponse'
  */
-router.post('/images/upload', upload.single('image'), uploadImage);
+router.post("/images/upload", upload.single("image"), uploadImage);
 
 export default router;

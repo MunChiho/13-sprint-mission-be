@@ -1,6 +1,12 @@
-import express from 'express';
-import { authenticate } from '../middleware/authenticate.js';
-import { signUp, signIn, refresh, signOut, getMe } from '../controllers/authController.js';
+import express from "express";
+import { authenticate } from "../middleware/authenticate";
+import {
+  signUp,
+  signIn,
+  refresh,
+  signOut,
+  getMe,
+} from "../controllers/authController";
 
 const router = express.Router();
 
@@ -47,7 +53,7 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/MessageResponse'
  */
-router.post('/auth/signUp', signUp);
+router.post("/auth/signUp", signUp);
 
 /**
  * @swagger
@@ -86,7 +92,7 @@ router.post('/auth/signUp', signUp);
  *             schema:
  *               $ref: '#/components/schemas/MessageResponse'
  */
-router.post('/auth/signIn', signIn);
+router.post("/auth/signIn", signIn);
 
 /**
  * @swagger
@@ -110,7 +116,7 @@ router.post('/auth/signIn', signIn);
  *       401:
  *         description: 유효하지 않은 refreshToken
  */
-router.post('/auth/refresh', refresh);
+router.post("/auth/refresh", refresh);
 
 /**
  * @swagger
@@ -124,7 +130,7 @@ router.post('/auth/refresh', refresh);
  *       200:
  *         description: 로그아웃 완료
  */
-router.post('/auth/signOut', authenticate, signOut);
+router.post("/auth/signOut", authenticate, signOut);
 
 /**
  * @swagger
@@ -154,6 +160,6 @@ router.post('/auth/signOut', authenticate, signOut);
  *             schema:
  *               $ref: '#/components/schemas/MessageResponse'
  */
-router.get('/users/me', authenticate, getMe);
+router.get("/users/me", authenticate, getMe);
 
 export default router;

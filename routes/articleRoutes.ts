@@ -1,9 +1,14 @@
-import express from 'express';
-import { authenticate, optionalAuthenticate } from '../middleware/authenticate.js';
+import express from "express";
+import { authenticate, optionalAuthenticate } from "../middleware/authenticate";
 import {
-  createArticle, getArticles, getArticle,
-  updateArticle, deleteArticle, likeArticle, unlikeArticle,
-} from '../controllers/articleController.js';
+  createArticle,
+  getArticles,
+  getArticle,
+  updateArticle,
+  deleteArticle,
+  likeArticle,
+  unlikeArticle,
+} from "../controllers/articleController";
 
 const router = express.Router();
 
@@ -15,7 +20,7 @@ const router = express.Router();
  */
 
 router
-  .route('/articles')
+  .route("/articles")
   /**
    * @swagger
    * /articles:
@@ -95,7 +100,7 @@ router
   .get(optionalAuthenticate, getArticles);
 
 router
-  .route('/articles/:id')
+  .route("/articles/:id")
   /**
    * @swagger
    * /articles/{id}:
@@ -180,7 +185,7 @@ router
  *       200:
  *         description: 좋아요 성공
  */
-router.post('/articles/:id/like', optionalAuthenticate, likeArticle);
+router.post("/articles/:id/like", optionalAuthenticate, likeArticle);
 
 /**
  * @swagger
@@ -200,6 +205,6 @@ router.post('/articles/:id/like', optionalAuthenticate, likeArticle);
  *       200:
  *         description: 좋아요 취소 성공
  */
-router.delete('/articles/:id/like', optionalAuthenticate, unlikeArticle);
+router.delete("/articles/:id/like", optionalAuthenticate, unlikeArticle);
 
 export default router;
